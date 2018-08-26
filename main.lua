@@ -12,7 +12,7 @@ function love.load()
     mouse = {}
     mouse.x, mouse.y = love.mouse.getPosition()
 
-    targetFps = 60
+    targetFps = 30
     fps = targetFps
 
     rot = {x = 0, y = math.pi/2}
@@ -21,8 +21,8 @@ function love.load()
     accel = {x = 0, y = 0, z = 0}
     deAccel = 0.8
     fov = 0.382*math.pi
-    rendDist = 200
-    lod = 30
+    rendDist = 1000
+    lod = 70
     maxLod = 5000
 
     waterHeight = 0.2
@@ -30,8 +30,8 @@ function love.load()
     contact = {x = false, y = false, z = false}
     flying = false
 
-    canvasSize = {x = 500, y = 500}
-    renderCanvas = love.graphics.newCanvas(canvasSize.x, canvasSize.y)
+    canvasMultiplier = 1
+    renderCanvas = love.graphics.newCanvas(dimensions.x*canvasMultiplier, dimensions.y*canvasMultiplier)
 
     load_shaders(true)
     load_textures(true)
@@ -56,6 +56,14 @@ function love.update(dt)
     dimensions.x, dimensions.y = love.graphics.getDimensions()
     mouse.x, mouse.y = love.mouse.getPosition()
     keyHeld()
+
+    if renderCanvas:getWidth() ~= dimensions.x*canvasMultiplier or renderCanvas:getHeight() ~= dimensions.y*canvasMultiplier then
+        renderCanvas = love.graphics.newCanvas(dimensions.x*canvasMultiplier, dimensions.y*canvasMultiplier)
+    end
+
+    if runtime%1 + dt > 1 then
+        load_shaders()
+    end
 
     if flying ==false and contact.z == false then
         accel.z = accel.z - 20*dt
@@ -91,45 +99,34 @@ function love.update(dt)
         end
     end
 
-    if takingShot ~= true then
-        if fps < targetFps then
-            --rendDist = math.max(rendDist - 0.0001 * math.max(targetFps - fps, 0)^3, 5)
-            --lod = math.max(1, lod - 0.5 * (math.max(targetFps - fps + 30, 0)*0.02)^10/0.02)
-            lod = math.max(1, lod - 0.5 * math.sinh(math.max(math.min(targetFps - fps, 5) + 4, 0)*1)*dt)
-            shader.raycast:send("lod", lod)
-        elseif fps > targetFps + 5 then
-            --rendDist = rendDist + 0.5
-            lod = math.min(maxLod, lod + 0.5 * math.sinh(math.max(math.min(fps - targetFps, 5) - 2, 0)*1)*dt)
-            shader.raycast:send("lod", lod)
-        end
+    if fps < targetFps then
+        --rendDist = math.max(rendDist - 0.0001 * math.max(targetFps - fps, 0)^3, 5)
+        --lod = math.max(1, lod - 0.5 * (math.max(targetFps - fps + 30, 0)*0.02)^10/0.02)
+        lod = math.max(1, lod - 0.5 * math.sinh(math.max(math.min(targetFps - fps, 20) + 4, 0)*1)*dt)
+        shader.raycast:send("lod", lod)
+    elseif fps > targetFps + 10 then
+        --rendDist = rendDist + 0.5
+        lod = math.min(maxLod, lod + 0.5 * math.sinh(math.max(math.min(fps - targetFps, 5) - 2, 0)*1)*dt)
+        shader.raycast:send("lod", lod)
     end
 
-    shader.raycast:send("dimensions", {dimensions.x, dimensions.y} )
+    shader.raycast:send("dimensions", {dimensions.x*canvasMultiplier, dimensions.y*canvasMultiplier} )
     shader.raycast:send("rot", {rot.x, rot.y} )
     shader.raycast:send("pos", {pos.x, pos.y, pos.z} )
-
-    if runtime%1 + dt > 1 then
-        load_shaders()
-    end
 end
 
 function love.draw()
     love.graphics.setCanvas(renderCanvas)
 
     love.graphics.setShader(shader.raycast)
-    love.graphics.rectangle("fill", 0, 0, canvasSize.x, canvasSize.y )
+    love.graphics.rectangle("fill", 0, 0, dimensions.x*canvasMultiplier, dimensions.y*canvasMultiplier)
     love.graphics.setShader()
 
     love.graphics.setCanvas()
 
-    love.graphics.draw(renderCanvas, 0, 0, 0, 1/(canvasSize.x/dimensions.x), 1/(canvasSize.y/dimensions.y) )
+    love.graphics.draw(renderCanvas, 0, 0, 0, 1/canvasMultiplier, 1/canvasMultiplier)
 
     if showdebug then
         debugoverlay()
-    end
-
-    if takingShot == true then
-        love.graphics.captureScreenshot("Raycaster" .. os.time() .. ".png")
-        takingShot = false
     end
 end

@@ -67,7 +67,7 @@ vec4 effect( vec4 color, sampler2D texture, vec2 texture_coords, vec2 screen_coo
 
     vec2 fragRot = vec2(
         fov*(screen_coords.x/dimensions.x) - fov/2.0,
-        fov*(screen_coords.y/dimensions.x) - fov/2.0 - pi/2.0);
+        fov*( (screen_coords.y + (dimensions.x - dimensions.y)/2)/dimensions.x) - fov/2.0 - pi/2.0);
 
     mat2x2 rotPreCalc;
     mat2x2 fragRotPreCalc;
@@ -125,7 +125,7 @@ vec4 effect( vec4 color, sampler2D texture, vec2 texture_coords, vec2 screen_coo
             pixel = Texel(testTexture, vec2(mod(rayPos.x + 1.0, 2.0)/2.0, mod(rayPos.y + 1.0, 2.0)/2.0) );
             break;
         }
-        if(manhattan(rayPos, vec3(10.0, 0.0, 0.0) ) <= 2.0){
+        if(manhattan(rayPos, vec3(10.0, 0.0, 2.0) ) <= 2.0){
             pixel = HSLtoRGB(vec4(mod(50 * pythag(rayPos, vec3(10.0, 0.0, 0.0) ), 1.0), 1.0, 0.5, 1.0) );
             break;
         }

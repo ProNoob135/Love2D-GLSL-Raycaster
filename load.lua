@@ -21,10 +21,11 @@ function load_shaders(forceLoad)
             loadedShader = love.filesystem.read("shaders/" .. shaderList[i])
             if pcall(love.graphics.newShader, loadedShader) or forceLoad then
                 shader[string.gsub( shaderList[i], ".frag", "")] = love.graphics.newShader(loadedShader)
-                lastModified.shader[i] = fileInfo.modtime
+                print("test")
             else
                 xpcall(love.graphics.newShader, errHandler, loadedShader)
             end
+            lastModified.shader[i] = fileInfo.modtime
         end
     end
 end

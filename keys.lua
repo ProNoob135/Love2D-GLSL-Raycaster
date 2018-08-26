@@ -12,7 +12,10 @@ local lastTap = -1
 
 local function default(key)
     if key=="escape" then
-        if fullscreen then
+        if love.mouse.isGrabbed() then
+            love.mouse.setVisible(true)
+            love.mouse.setGrabbed(false)
+        elseif fullscreen then
             fullscreen = nil
             love.window.setFullscreen(false)
         else
@@ -22,9 +25,7 @@ local function default(key)
         fullscreen = not fullscreen and true or false
         love.window.setFullscreen(fullscreen)
     elseif key == "f2" then
-        takingShot = true
-        lod = 1000
-        shader.raycast:send("lod", lod)
+        love.graphics.captureScreenshot("Raycaster" .. os.time() .. ".png")
     elseif key == "f3" then
         showdebug = showdebug == nil and true or nil
     elseif key == "f4" then
@@ -32,7 +33,6 @@ local function default(key)
         love.mouse.setGrabbed(false)
         debug.debug()
         love.mouse.setVisible(false)
-        love.mouse.setPosition(dimensions.x/2, dimensions.y/2)
         love.mouse.setGrabbed(true)
     end
 end
@@ -107,13 +107,20 @@ function love.wheelmoved(x, y)
     end
 end
 
-function love.mousemoved(x, y, dx, dy)
-    rot.x = (rot.x + dx/dimensions.x * math.pi*2)%(math.pi*2)
-    rot.y = math.max(0, math.min(math.pi, rot.y + dy/dimensions.y * math.pi) )
+function love.mousepressed(x, y, button, isTouch)
+    love.mouse.setVisible(false)
+    love.mouse.setGrabbed(true)
+end
 
-    if x == 0 then
-        love.mouse.setPosition(dimensions.x, y)
-    elseif x == dimensions.x - 1 then
-        love.mouse.setPosition(0, y)
+function love.mousemoved(x, y, dx, dy)
+    if love.mouse.isGrabbed() then
+        rot.x = (rot.x + dx/dimensions.x * math.pi*2)%(math.pi*2)
+        rot.y = math.max(0, math.min(math.pi, rot.y + dy/dimensions.y * math.pi) )
+
+        if x == 0 then
+            love.mouse.setPosition(dimensions.x, y)
+        elseif x == dimensions.x - 1 then
+            love.mouse.setPosition(0, y)
+        end
     end
 end

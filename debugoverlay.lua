@@ -1,7 +1,8 @@
 
 function debugoverlay()
 
-    local debugTbl = {fps, {dimensions.x, dimensions.y}, (fov/math.pi), rendDist, lod, {accel.x, accel.y, accel.z}, {pos.x, pos.y, pos.z}, {rot.x, rot.y}, {contact.x, contact.y, contact.z}, flying}
+    local debugTbl = {fps, {dimensions.x, dimensions.y}, (fov/math.pi), rendDist, lod, {accel.x, accel.y, accel.z}, {pos.x, pos.y, pos.z},
+    {rot.x, rot.y}, {contact.x, contact.y, contact.z}, flying}
     local output
 
     love.graphics.setColor(1, 1, 1, 1)
