@@ -12,7 +12,7 @@ function love.load()
     mouse = {}
     mouse.x, mouse.y = love.mouse.getPosition()
 
-    targetFps = 20
+    targetFps = 60
     fps = targetFps
 
     rot = {x = 0, y = math.pi/2}
@@ -23,6 +23,7 @@ function love.load()
     fov = 0.382*math.pi
     rendDist = 200
     lod = 30
+    maxLod = 5000
 
     waterHeight = 0.2
 
@@ -65,7 +66,6 @@ function love.update(dt)
     end
 
     tempPixelHeight = heightmapData:getPixel( (pos.x + 1000/2)%1000/1000*heightmapData:getWidth(), (pos.y + 1000/2)%1000/1000*heightmapData:getHeight())
-    print(tempPixelHeight)
 
     if pos.z - 2 <= -10 then
         contact.z = true
@@ -95,11 +95,11 @@ function love.update(dt)
         if fps < targetFps then
             --rendDist = math.max(rendDist - 0.0001 * math.max(targetFps - fps, 0)^3, 5)
             --lod = math.max(1, lod - 0.5 * (math.max(targetFps - fps + 30, 0)*0.02)^10/0.02)
-            lod = math.max(1, lod - 0.5 * math.sinh(math.max(targetFps - fps + 4, 0)*1)*dt)
+            lod = math.max(1, lod - 0.5 * math.sinh(math.max(math.min(targetFps - fps, 20) + 4, 0)*1)*dt)
             shader.raycast:send("lod", lod)
-        else
+        elseif fps > targetFps + 5 then
             --rendDist = rendDist + 0.5
-            lod = math.min(200, lod + 0.5 * math.sinh(math.max(fps - targetFps - 2, 0)*1)*dt)
+            lod = math.min(maxLod, lod + 0.5 * math.sinh(math.max(math.min(fps - targetFps, 20) - 2, 0)*1)*dt)
             shader.raycast:send("lod", lod)
         end
     end
