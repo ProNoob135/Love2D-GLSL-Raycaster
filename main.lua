@@ -95,11 +95,11 @@ function love.update(dt)
         if fps < targetFps then
             --rendDist = math.max(rendDist - 0.0001 * math.max(targetFps - fps, 0)^3, 5)
             --lod = math.max(1, lod - 0.5 * (math.max(targetFps - fps + 30, 0)*0.02)^10/0.02)
-            lod = math.max(1, lod - 0.5 * math.sinh(math.max(math.min(targetFps - fps, 20) + 4, 0)*1)*dt)
+            lod = math.max(1, lod - 0.5 * math.sinh(math.max(math.min(targetFps - fps, 5) + 4, 0)*1)*dt)
             shader.raycast:send("lod", lod)
         elseif fps > targetFps + 5 then
             --rendDist = rendDist + 0.5
-            lod = math.min(maxLod, lod + 0.5 * math.sinh(math.max(math.min(fps - targetFps, 20) - 2, 0)*1)*dt)
+            lod = math.min(maxLod, lod + 0.5 * math.sinh(math.max(math.min(fps - targetFps, 5) - 2, 0)*1)*dt)
             shader.raycast:send("lod", lod)
         end
     end
@@ -130,7 +130,6 @@ function love.draw()
 
     if takingShot == true then
         love.graphics.captureScreenshot("Raycaster" .. os.time() .. ".png")
-        lod = 30
         takingShot = false
     end
 end
