@@ -1,7 +1,7 @@
 require "keys"
 require "debugoverlay"
 require "mathlib"
-require "load_shaders"
+require "load"
 require "polygons"
 
 function love.load()
@@ -32,18 +32,19 @@ function love.load()
     canvasSize = {x = 500, y = 500}
     renderCanvas = love.graphics.newCanvas(canvasSize.x, canvasSize.y)
 
-    raycastShader:send("rendDist", rendDist)
-    raycastShader:send("fov", fov)
-    raycastShader:send("lod", lod)
+    load_shaders(true)
+    load_textures(true)
 
-    raycastShader:send("waterHeight", waterHeight)
+    shader.raycast:send("rendDist", rendDist)
+    shader.raycast:send("fov", fov)
+    shader.raycast:send("lod", lod)
 
-    testTexture = love.graphics.newImage("stone.png")
-    heightmap = love.graphics.newImage("heightmap2.png")
-    raycastShader:send("testTexture", testTexture)
-    raycastShader:send("heightmap", heightmap)
+    shader.raycast:send("waterHeight", waterHeight)
 
-    heightmapData = love.image.newImageData("heightmap2.png")
+    shader.raycast:send("testTexture", texture.stone)
+    shader.raycast:send("heightmap", texture.heightmap2)
+
+    heightmapData = love.image.newImageData("textures/heightmap2.png")
 
 end
 
@@ -95,24 +96,27 @@ function love.update(dt)
             --rendDist = math.max(rendDist - 0.0001 * math.max(targetFps - fps, 0)^3, 5)
             --lod = math.max(1, lod - 0.5 * (math.max(targetFps - fps + 30, 0)*0.02)^10/0.02)
             lod = math.max(1, lod - 0.5 * math.sinh(math.max(targetFps - fps + 4, 0)*1)*dt)
-            raycastShader:send("lod", lod)
+            shader.raycast:send("lod", lod)
         else
             --rendDist = rendDist + 0.5
             lod = math.min(200, lod + 0.5 * math.sinh(math.max(fps - targetFps - 2, 0)*1)*dt)
-            raycastShader:send("lod", lod)
+            shader.raycast:send("lod", lod)
         end
     end
 
-    raycastShader:send("dimensions", {dimensions.x, dimensions.y} )
-    raycastShader:send("rot", {rot.x, rot.y} )
-    raycastShader:send("pos", {pos.x, pos.y, pos.z} )
+    shader.raycast:send("dimensions", {dimensions.x, dimensions.y} )
+    shader.raycast:send("rot", {rot.x, rot.y} )
+    shader.raycast:send("pos", {pos.x, pos.y, pos.z} )
 
+    if runtime%1 + dt > 1 then
+        load_shaders()
+    end
 end
 
 function love.draw()
     love.graphics.setCanvas(renderCanvas)
 
-    love.graphics.setShader(raycastShader)
+    love.graphics.setShader(shader.raycast)
     love.graphics.rectangle("fill", 0, 0, canvasSize.x, canvasSize.y )
     love.graphics.setShader()
 

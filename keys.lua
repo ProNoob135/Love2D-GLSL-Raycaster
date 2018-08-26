@@ -24,7 +24,7 @@ local function default(key)
     elseif key == "f2" then
         takingShot = true
         lod = 1000
-        raycastShader:send("lod", lod)
+        shader.raycast:send("lod", lod)
     elseif key == "f3" then
         showdebug = showdebug == nil and true or nil
     elseif key == "f4" then
@@ -95,15 +95,15 @@ end
 function love.wheelmoved(x, y)
     if love.mouse.isDown(1) then
         lod = lod + (lod*0.1)*y
-        raycastShader:send("lod", lod)
+        shader.raycast:send("lod", lod)
     elseif love.mouse.isDown(2) then
         fov = fov - (fov*0.1)*y
-        raycastShader:send("fov", fov)
+        shader.raycast:send("fov", fov)
     else
         rendDist = math.max(rendDist + (rendDist*0.1)*y, 1)
-        raycastShader:send("rendDist", rendDist)
+        shader.raycast:send("rendDist", rendDist)
         waterHeight = mathlib.bounds(waterHeight + y/30, 0, 1)
-        raycastShader:send("waterHeight", waterHeight)
+        shader.raycast:send("waterHeight", waterHeight)
     end
 end
 
