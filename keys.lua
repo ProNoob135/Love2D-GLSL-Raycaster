@@ -40,7 +40,11 @@ end
 function love.keypressed(key, u)
     default(key)
     if key == "t" then
-        fps = 5
+        load_textures()
+        shader.raycast:send("stone", texture.stone)
+        shader.raycast:send("heightmap2", texture.heightmap2)
+
+        heightmapData = love.image.newImageData("textures/heightmap2.png")
     elseif key == "space" then
         if os.clock() - lastTap <= 0.3 then
             flying = flying == false and true or false

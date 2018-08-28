@@ -7,7 +7,9 @@ local shaderList = love.filesystem.getDirectoryItems("shaders")
 shader = {}
 
 lastModified.texture = {}
+local loadedTexture
 local textureList = love.filesystem.getDirectoryItems("textures")
+local recentlyModified = {}
 texture = {}
 
 local function errHandler(err)
@@ -21,7 +23,6 @@ function load_shaders(forceLoad)
             loadedShader = love.filesystem.read("shaders/" .. shaderList[i])
             if pcall(love.graphics.newShader, loadedShader) or forceLoad then
                 shader[string.gsub( shaderList[i], ".frag", "")] = love.graphics.newShader(loadedShader)
-                print("test")
             else
                 xpcall(love.graphics.newShader, errHandler, loadedShader)
             end
@@ -34,7 +35,15 @@ function load_textures(forceLoad)
     for i = 1, #textureList do
         fileInfo = love.filesystem.getInfo("textures/" .. textureList[i])
         if fileInfo.modtime ~= lastModified.texture[i] or forceLoad then
-            texture[string.gsub(textureList[i], ".png", "")] = love.graphics.newImage("textures/" .. textureList[i])
+            if pcall(love.graphics.newImage, "textures/" .. textureList[i]) then
+                texture[string.gsub(textureList[i], ".png", "")] = love.graphics.newImage("textures/" .. textureList[i])
+                recentlyModified[#recentlyModified] = textureList[i]
+                if not forceLoad then
+                    print("Reloaded textures/" .. textureList[i])
+                end
+            else
+                xpcall(love.graphics.newImage, errHandler, "textures/" .. textureList[i])
+            end
             lastModified.texture[i] = fileInfo.modtime
         end
     end

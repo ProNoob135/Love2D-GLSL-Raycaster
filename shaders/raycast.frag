@@ -53,15 +53,21 @@ uniform float fov;
 uniform vec3 pos;
 uniform float rendDist;
 uniform float lod;
-uniform sampler2D testTexture;
-uniform sampler2D heightmap;
+uniform sampler2D stone;
+uniform sampler2D heightmap2;
+uniform sampler2D pretty;
 
 uniform float waterHeight;
 
 float pi = 3.1415926535897932384626433832795;
 vec4 pixel = vec4(0.24, 0.712, 0.865, 1.0);
 
-vec3 rayPos = vec3(0.0, 0.0, 0.0);
+mat2x3 polygons[] = mat2x3[](
+    mat2x3(
+        10, 10, 10,
+        5, 5, 5
+        )
+    );
 
 vec4 effect( vec4 color, sampler2D texture, vec2 texture_coords, vec2 screen_coords ){
 
@@ -77,34 +83,40 @@ vec4 effect( vec4 color, sampler2D texture, vec2 texture_coords, vec2 screen_coo
         fragRotPreCalc[i] = vec2(cos(fragRot[i]), sin(fragRot[i]) );
     }
 
+    vec3 cameraPos = pos - vec3(rotPreCalc[0].x, rotPreCalc[0].y, rotPreCalc[1].x );
+
+    vec3 raySlope;
+
+    raySlope.xy = vec2(
+        fragRotPreCalc[0].x,
+        fragRotPreCalc[0].y);
+
+    raySlope.xz = vec2(
+        raySlope.x*fragRotPreCalc[1].x,
+        -raySlope.x*fragRotPreCalc[1].y);
+
+    raySlope.xz = vec2(
+        raySlope.x*rotPreCalc[1].x + raySlope.z*rotPreCalc[1].y,
+        raySlope.z*rotPreCalc[1].x - raySlope.x*rotPreCalc[1].y );
+
+    raySlope.xy = vec2(
+        raySlope.x*rotPreCalc[0].x - raySlope.y*rotPreCalc[0].y,
+        raySlope.y*rotPreCalc[0].x + raySlope.x*rotPreCalc[0].y );
+
+    vec3 rayPos;
+
     float dist;
 
     for(dist = 1.0; dist <= rendDist; dist = dist + (dist-0.5)/lod){
 
-        rayPos.xy = vec2(
-            dist*fragRotPreCalc[0].x,
-            dist*fragRotPreCalc[0].y);
-
-        rayPos.xz = vec2(
-            rayPos.x*fragRotPreCalc[1].x,
-            -rayPos.x*fragRotPreCalc[1].y);
-
-        rayPos.xz = vec2(
-            rayPos.x*rotPreCalc[1].x + rayPos.z*rotPreCalc[1].y,
-            rayPos.z*rotPreCalc[1].x - rayPos.x*rotPreCalc[1].y );
-
-        rayPos.xy = vec2(
-            rayPos.x*rotPreCalc[0].x - rayPos.y*rotPreCalc[0].y,
-            rayPos.y*rotPreCalc[0].x + rayPos.x*rotPreCalc[0].y );
-
-        rayPos = rayPos + pos - vec3(rotPreCalc[0].x, rotPreCalc[0].y, rotPreCalc[1].x );
+        rayPos = (raySlope * dist) + cameraPos;
 
         float width = 1000.0;
         float height = 50.0;
         float tPos = 0.0;
 
         /*if(rayPos.z <= -5.0 + height && rayPos.z >= -6.0 && rayPos.x >= -(width/2.0) && rayPos.x <= (width/2.0) && rayPos.y >= -(width/2.0) && rayPos.y <= (width/2.0) ){
-            vec4 terrainHeight = Texel(heightmap, vec2( (rayPos.x + (width/2.0))/width, (rayPos.y + (width/2.0) )/width) );
+            vec4 terrainHeight = Texel(heightmap2, vec2( (rayPos.x + (width/2.0))/width, (rayPos.y + (width/2.0) )/width) );
             if(rayPos.z <= terrainHeight.x*height - 5.0){
                 pixel = HSLtoRGB(vec4(terrainHeight.x, 1.0, 0.5, 1.0) );
                 break;
@@ -115,18 +127,20 @@ vec4 effect( vec4 color, sampler2D texture, vec2 texture_coords, vec2 screen_coo
             //break;
         }
         if(rayPos.z <= tPos + height && rayPos.z >= tPos - (dist-0.5)/lod){
-            vec4 terrainHeight = Texel(heightmap, vec2(mod(rayPos.x + width/2, width)/width, mod(rayPos.y + width/2.0, width)/width) );
+            vec4 terrainHeight = Texel(heightmap2, vec2(mod(rayPos.x + width/2, width)/width, mod(rayPos.y + width/2.0, width)/width) );
             if(rayPos.z <= terrainHeight.x*height + tPos){
-                pixel = HSLtoRGB(vec4(terrainHeight.x, 1.0, 0.5, 1.0) );
+                //pixel = HSLtoRGB(vec4(terrainHeight.x, 1.0, 0.5, 1.0) );
+                pixel = Texel(pretty, vec2(mod(rayPos.x + width/2, width)/width, mod(rayPos.y + width/2.0, width)/width) );
+                //pixel = vec4(floor(mod(rayPos.x + floor(mod(rayPos.y, 2) ), 2) ), 0.0, floor(mod(rayPos.x + floor(mod(rayPos.y, 2) ), 2) ), 1.0);
                 break;
             }
         }
         if(rayPos.z <= -10.0){
-            pixel = Texel(testTexture, vec2(mod(rayPos.x + 1.0, 2.0)/2.0, mod(rayPos.y + 1.0, 2.0)/2.0) );
+            pixel = Texel(stone, vec2(mod(rayPos.x + 1.0, 2.0)/2.0, mod(rayPos.y + 1.0, 2.0)/2.0) );
             break;
         }
-        if(manhattan(rayPos, vec3(10.0, 0.0, 2.0) ) <= 2.0){
-            pixel = HSLtoRGB(vec4(mod(50 * pythag(rayPos, vec3(10.0, 0.0, 0.0) ), 1.0), 1.0, 0.5, 1.0) );
+        if(manhattan(rayPos, vec3(10.0, 0.0, 2.75 + Texel(heightmap2, vec2(mod(10.0 + width/2.0, width)/width, mod(0.0 + width/2.0, width)/width) ) ) ) <= 2.0){
+            pixel = HSLtoRGB(vec4(mod(manhattan(rayPos, vec3(10.0, 0.0, 2.75 + Texel(heightmap2, vec2(mod(10.0 + width/2.0, width)/width, mod(0.0 + width/2.0, width)/width) ) ) )*(10), 1.0), 1.0, 0.5, 1.0) );
             break;
         }
 
@@ -159,7 +173,7 @@ vec4 effect( vec4 color, sampler2D texture, vec2 texture_coords, vec2 screen_coo
             break;
         }*/
 
-        if(rayPos.z + rotPreCalc[1].x >= pos.z && rayPos.z > height + -5.0){
+        if(rayPos.z + rotPreCalc[1].x >= pos.z && rayPos.z > height){
             pixel = vec4(0.24, 0.712, 0.865, 1.0);
             break;
         }

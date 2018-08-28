@@ -42,8 +42,9 @@ function love.load()
 
     shader.raycast:send("waterHeight", waterHeight)
 
-    shader.raycast:send("testTexture", texture.stone)
-    shader.raycast:send("heightmap", texture.heightmap2)
+    shader.raycast:send("stone", texture.stone)
+    shader.raycast:send("heightmap2", texture.heightmap2)
+    shader.raycast:send("pretty", texture.pretty)
 
     heightmapData = love.image.newImageData("textures/heightmap2.png")
 
