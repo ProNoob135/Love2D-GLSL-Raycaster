@@ -107,7 +107,7 @@ vec4 effect( vec4 color, sampler2D texture, vec2 texture_coords, vec2 screen_coo
 
     float dist;
 
-    for(dist = 1.0; dist <= rendDist; dist = dist + (dist-0.5)/lod){
+    for(dist = 1.0; dist <= rendDist; dist = dist + dist/lod){
 
         rayPos = (raySlope * dist) + cameraPos;
 
@@ -126,12 +126,22 @@ vec4 effect( vec4 color, sampler2D texture, vec2 texture_coords, vec2 screen_coo
             pixel = vec4(0.1, 0.1, 1.0, 1.0);
             //break;
         }
-        if(rayPos.z <= tPos + height && rayPos.z >= tPos - (dist-0.5)/lod){
+        if(rayPos.z <= tPos + height && rayPos.z >= tPos - dist/lod){
             vec4 terrainHeight = Texel(heightmap2, vec2(mod(rayPos.x + width/2, width)/width, mod(rayPos.y + width/2.0, width)/width) );
             if(rayPos.z <= terrainHeight.x*height + tPos){
                 //pixel = HSLtoRGB(vec4(terrainHeight.x, 1.0, 0.5, 1.0) );
                 pixel = Texel(pretty, vec2(mod(rayPos.x + width/2, width)/width, mod(rayPos.y + width/2.0, width)/width) );
                 //pixel = vec4(floor(mod(rayPos.x + floor(mod(rayPos.y, 2) ), 2) ), 0.0, floor(mod(rayPos.x + floor(mod(rayPos.y, 2) ), 2) ), 1.0);
+
+                mat2x4 slope;
+                slope[0] = Texel(heightmap2, vec2(mod(10.0 + rayPos.x + width/2, width)/width, mod(rayPos.y + width/2.0, width)/width) )-
+                Texel(heightmap2, vec2(mod(-10.0 + rayPos.x + width/2, width)/width, mod(rayPos.y + width/2.0, width)/width) );
+
+                slope[1] = Texel(heightmap2, vec2(mod(rayPos.x + width/2, width)/width, mod(10.0 + rayPos.y + width/2.0, width)/width) )-
+                Texel(heightmap2, vec2(mod(rayPos.x + width/2, width)/width, mod(-10.0 + rayPos.y + width/2.0, width)/width) );
+
+                pixel.xyz = pixel.xyz*(1 - abs(atan(slope[0].xxx + slope[1].xxx) )/(0.001*pi) );
+
                 break;
             }
         }
@@ -140,7 +150,7 @@ vec4 effect( vec4 color, sampler2D texture, vec2 texture_coords, vec2 screen_coo
             break;
         }
         if(manhattan(rayPos, vec3(10.0, 0.0, 2.75 + Texel(heightmap2, vec2(mod(10.0 + width/2.0, width)/width, mod(0.0 + width/2.0, width)/width) ) ) ) <= 2.0){
-            pixel = HSLtoRGB(vec4(mod(manhattan(rayPos, vec3(10.0, 0.0, 2.75 + Texel(heightmap2, vec2(mod(10.0 + width/2.0, width)/width, mod(0.0 + width/2.0, width)/width) ) ) )*(10), 1.0), 1.0, 0.5, 1.0) );
+            pixel = HSLtoRGB(vec4(mod(manhattan(rayPos, vec3(10.0, 0.0, 2.75 + Texel(heightmap2, vec2(mod(10.0 + width/2.0, width)/width, mod(0.0 + width/2.0, width)/width) ) ) )*(5), 1.0), 1.0, 0.5, 1.0) );
             break;
         }
 

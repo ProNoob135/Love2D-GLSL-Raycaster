@@ -16,3 +16,5 @@ Esc to exit fullscreen/quit
 Scroll to change render distance
 Right click + Scroll to change FOV(zoom)
 Left click + Scroll to temporarily modify LOD(Level of Detail)
+
+T to reload textures
