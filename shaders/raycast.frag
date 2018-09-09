@@ -129,7 +129,7 @@ vec4 effect( vec4 color, sampler2D texture, vec2 texture_coords, vec2 screen_coo
             //break;
         }
         if(rayPos.z <= tPos + height && rayPos.z >= tPos - dist/lod){
-            vec4 terrainHeight = Texel(heightmap2, vec2(mod(rayPos.x + width/2, width)/width, mod(rayPos.y + width/2.0, width)/width) ) * pow(min(1, (abs(rayPos.x) + abs(rayPos.z) )/10.0), 10);
+            vec4 terrainHeight = Texel(heightmap2, vec2(mod(rayPos.x + width/2, width)/width, mod(rayPos.y + width/2.0, width)/width) ) * pow(min(1, sqrt(abs(rayPos.x) + abs(rayPos.y) )*0.05 ), 2.0);
             if(rayPos.z <= terrainHeight.x*height + tPos){
                 //pixel = HSLtoRGB(vec4(terrainHeight.x, 1.0, 0.5, 1.0) );
                 //pixel = vec4(floor(mod(rayPos.x + floor(mod(rayPos.y, 2) ), 2) ), 0.0, floor(mod(rayPos.x + floor(mod(rayPos.y, 2) ), 2) ), 1.0);
