@@ -107,7 +107,9 @@ vec4 effect( vec4 color, sampler2D texture, vec2 texture_coords, vec2 screen_coo
 
     float dist;
 
-    for(dist = 1.0; dist <= rendDist; dist = dist + (dist-0.5)/lod){
+    vec4 vaporWave;
+
+    for(dist = 1.0; dist <= rendDist; dist = dist + dist/lod){
 
         rayPos = (raySlope * dist) + cameraPos;
 
@@ -126,12 +128,28 @@ vec4 effect( vec4 color, sampler2D texture, vec2 texture_coords, vec2 screen_coo
             pixel = vec4(0.1, 0.1, 1.0, 1.0);
             //break;
         }
-        if(rayPos.z <= tPos + height && rayPos.z >= tPos - (dist-0.5)/lod){
-            vec4 terrainHeight = Texel(heightmap2, vec2(mod(rayPos.x + width/2, width)/width, mod(rayPos.y + width/2.0, width)/width) );
+        if(rayPos.z <= tPos + height && rayPos.z >= tPos - dist/lod){
+            vec4 terrainHeight = Texel(heightmap2, vec2(mod(rayPos.x + width/2, width)/width, mod(rayPos.y + width/2.0, width)/width) ) * pow(min(1, (abs(rayPos.x) + abs(rayPos.z) )/10.0), 10);
             if(rayPos.z <= terrainHeight.x*height + tPos){
                 //pixel = HSLtoRGB(vec4(terrainHeight.x, 1.0, 0.5, 1.0) );
-                pixel = Texel(pretty, vec2(mod(rayPos.x + width/2, width)/width, mod(rayPos.y + width/2.0, width)/width) );
                 //pixel = vec4(floor(mod(rayPos.x + floor(mod(rayPos.y, 2) ), 2) ), 0.0, floor(mod(rayPos.x + floor(mod(rayPos.y, 2) ), 2) ), 1.0);
+                //pixel = vec4(floor(mod(rayPos.x + floor(mod(rayPos.y, 2) ), 2) ), 0.0, floor(mod(rayPos.x + floor(mod(rayPos.y, 2) ), 2) ), 1.0);
+                pixel = vec4(13.2/100.0, 8.7/100.0, 33.7/100.0, 1.0);
+                if( mod(rayPos.x*20, 40.0 )< 1 || mod(rayPos.y*20, 40.0 )< 1){
+                    pixel.xyz = vec3(77.2/100.0, 15.9/100.0, 58.1/100.0);
+                }
+                pixel = lerp(pixel, Texel(pretty, vec2(mod(rayPos.x + width/2, width)/width, mod(rayPos.y + width/2.0, width)/width) ), 0.001);
+
+
+                mat2x4 slope;
+                slope[0] = Texel(heightmap2, vec2(mod(10.0 + rayPos.x + width/2, width)/width, mod(rayPos.y + width/2.0, width)/width) )-
+                Texel(heightmap2, vec2(mod(-10.0 + rayPos.x + width/2, width)/width, mod(rayPos.y + width/2.0, width)/width) );
+
+                slope[1] = Texel(heightmap2, vec2(mod(rayPos.x + width/2, width)/width, mod(10.0 + rayPos.y + width/2.0, width)/width) )-
+                Texel(heightmap2, vec2(mod(rayPos.x + width/2, width)/width, mod(-10.0 + rayPos.y + width/2.0, width)/width) );
+
+                //pixel.xyz = pixel.xyz*(1 - abs(atan(slope[0].xxx) )/(0.1*pi) );
+
                 break;
             }
         }
@@ -140,7 +158,7 @@ vec4 effect( vec4 color, sampler2D texture, vec2 texture_coords, vec2 screen_coo
             break;
         }
         if(manhattan(rayPos, vec3(10.0, 0.0, 2.75 + Texel(heightmap2, vec2(mod(10.0 + width/2.0, width)/width, mod(0.0 + width/2.0, width)/width) ) ) ) <= 2.0){
-            pixel = HSLtoRGB(vec4(mod(manhattan(rayPos, vec3(10.0, 0.0, 2.75 + Texel(heightmap2, vec2(mod(10.0 + width/2.0, width)/width, mod(0.0 + width/2.0, width)/width) ) ) )*(10), 1.0), 1.0, 0.5, 1.0) );
+            pixel = HSLtoRGB(vec4(mod(manhattan(rayPos, vec3(10.0, 0.0, 2.75 + Texel(heightmap2, vec2(mod(10.0 + width/2.0, width)/width, mod(0.0 + width/2.0, width)/width) ) ) )*(5), 1.0), 1.0, 0.5, 1.0) );
             break;
         }
 
@@ -173,12 +191,15 @@ vec4 effect( vec4 color, sampler2D texture, vec2 texture_coords, vec2 screen_coo
             break;
         }*/
 
-        if(rayPos.z + rotPreCalc[1].x >= pos.z && rayPos.z > height){
-            pixel = vec4(0.24, 0.712, 0.865, 1.0);
+        vaporWave = lerp(vec4(54.1*0.01, 0.6*0.01, 78.1*0.01, 1.0), vec4(0.0*0.01, 0.0*0.01, 54.2*0.01, 1.0), min(1, rayPos.z/height/20) );
+        if(rayPos.z + rotPreCalc[1].x >= pos.z && rayPos.z > height*20){
+            //pixel = vec4(0.24, 0.712, 0.865, 1.0);
+            pixel = vaporWave;
             break;
         }
     }
-    pixel = lerp(pixel, vec4(0.24, 0.712, 0.865, 1.0), pow(bounds( (dist)/rendDist, 0, 1), 4) );
+    //pixel = lerp(pixel, vec4(0.24, 0.712, 0.865, 1.0), pow(bounds( (dist)/rendDist, 0, 1), 4) );
+    pixel = lerp(pixel, vaporWave, pow(bounds( (dist)/rendDist, 0, 1), 4) );
 
     return pixel;
 }

@@ -25,7 +25,13 @@ local function default(key)
         fullscreen = not fullscreen and true or false
         love.window.setFullscreen(fullscreen)
     elseif key == "f2" then
-        love.graphics.captureScreenshot("Raycaster" .. os.time() .. ".png")
+        if love.keyboard.isDown("lalt") then
+            lod = 10000
+            shader.raycast:send("lod", lod)
+            love.graphics.captureScreenshot("Raycaster" .. os.time() .. ".png")
+        else
+            love.graphics.captureScreenshot("Raycaster" .. os.time() .. ".png")
+        end
     elseif key == "f3" then
         showdebug = showdebug == nil and true or nil
     elseif key == "f4" then
