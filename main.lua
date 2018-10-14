@@ -102,7 +102,7 @@ function love.update(dt)
 
     if fps < targetFps then
         --rendDist = math.max(rendDist - 0.0001 * math.max(targetFps - fps, 0)^3, 5)
-        --lod = math.max(1, lod - 0.5 * (math.max(targetFps - fps + 30, 0)*0.02)^10/0.02)
+        --lod = math.max(1, lod - 0.wdd5 * (math.max(targetFps - fps + 30, 0)*0.02)^10/0.02)
         lod = math.max(1, lod - 0.5 * math.sinh(math.max(math.min(targetFps - fps, 20) + 4, 0)*1)*dt)
         shader.raycast:send("lod", lod)
     elseif fps > targetFps + 10 then
